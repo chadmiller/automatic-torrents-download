@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+import argparse
+import logging
+import filesystem, planning, downloader
+
+logging.basicConfig(level=logging.DEBUG)
+
+logging.debug("starting")
+
+argparser = argparse.ArgumentParser(description="Download new shows based on current shows.")
+argparser.add_argument('storage', type=str, help="where well-named shows are stored", default="/data/movies-and-television", nargs="?")
+args = argparser.parse_args()
+
+finished = filesystem.scan(args.storage)
+in_progress = downloader.list_in_progress()
+want = planning.based_on(finished) - in_progress
+
+downloader.enqueue_all(want)
+
+logging.debug("ending")
