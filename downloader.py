@@ -5,14 +5,17 @@ from random import randint
 from datetime import datetime, timedelta
 from tpblite import TPB
 import sqlite3
+from time import sleep
 
 logger = logging.getLogger(__name__)
 
 def get_best(term):
+    sleep(randint(5, 10))
     site = TPB()
     results = site.search(term)
     best = results.getBestTorrent(min_seeds=3, min_filesize='800 MiB', max_filesize='4 GiB')
     if best:
+        logger.debug("Found torrent %s", best)
         return best.magnetlink
     raise IndexError((term, site))
 
