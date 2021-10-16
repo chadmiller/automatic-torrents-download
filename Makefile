@@ -1,5 +1,5 @@
 run: env_stamp
-	. env/bin/activate; ./torrent-queuer
+	. env/bin/activate; ./torrent-queuer ${STORAGE}
 
 env_stamp:
 	python3 -m venv env

@@ -13,9 +13,8 @@ argparser.add_argument('storage', type=str, help="where well-named shows are sto
 args = argparser.parse_args()
 
 finished = filesystem.scan(args.storage)
-in_progress = downloader.list_in_progress()
-want = planning.based_on(finished) - in_progress
+#in_progress = downloader.list_in_progress()
 
-downloader.enqueue_all(want)
+downloader.enqueue_all(planning.based_on(finished))
 
 logging.debug("ending")

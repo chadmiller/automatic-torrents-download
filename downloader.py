@@ -11,15 +11,17 @@ logger = logging.getLogger(__name__)
 def get_best(term):
     site = TPB()
     results = site.search(term)
-    best = results.getBestTorrent(min_seeds=30, min_filesize='800 MiB', max_filesize='4 GiB')
+    best = results.getBestTorrent(min_seeds=3, min_filesize='800 MiB', max_filesize='4 GiB')
     if best:
         return best.magnetlink
     raise IndexError((term, site))
 
 
-def enqueue_all(want):
+def enqueue_all(source):
     db = sqlite3.connect("torrent-queuer-state.sqlite3")
     cursor = db.cursor()
+
+    found = None
 
     try:
         cursor.execute("""
@@ -31,7 +33,15 @@ def enqueue_all(want):
         """)
 
         now = datetime.utcnow()
-        for name, season, ep in sorted(want):
+        while True:
+
+            try:
+                name, season, ep = source.send(found)
+            except StopIteration:
+                break
+
+            found = None
+
             subject = "{} s{:02d}e{:02d}".format(name, season, ep)
 
             row = cursor.execute("select last_try, fail_count from cache where subject = ?", (subject,)).fetchone()
@@ -52,7 +62,8 @@ def enqueue_all(want):
                 good_torrent_magnet = get_best(subject)
 
                 if good_torrent_magnet:
-                    enqueue_magnet_link(good_torrent_magnet)
+                    enqueue_magnet_link(good_torrent_magnet, subject)
+                    found = True
 
                 cursor.execute("delete from cache where subject = ?", (subject,))
             except IndexError:
