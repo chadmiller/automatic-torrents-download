@@ -2,9 +2,9 @@
 
 import os
 import re
-import logging
+import logging as loggingmod
 
-logger = logging.getLogger(__name__)
+logger = loggingmod.getLogger(__name__)
 
 
 def scan(root):

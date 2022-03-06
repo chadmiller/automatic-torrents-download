@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-import logging
+import logging as loggingmod
 import filesystem, planning, downloader
 
-logging.basicConfig(level=logging.DEBUG)
+loggingmod.basicConfig(level=loggingmod.DEBUG)
+logger = loggingmod.getLogger(__name__)
 
-logging.debug("starting")
+logger.debug("starting")
 
 argparser = argparse.ArgumentParser(description="Download new shows based on current shows.")
 argparser.add_argument('storage', type=str, help="where well-named shows are stored", default="/data/movies-and-television", nargs="?")
@@ -17,4 +18,4 @@ finished = filesystem.scan(args.storage)
 
 downloader.enqueue_all(planning.based_on(finished))
 
-logging.debug("ending")
+logger.debug("ending")

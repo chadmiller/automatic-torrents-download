@@ -1,5 +1,5 @@
 import subprocess
-import logging
+import logging as loggingmod
 
 from random import randint
 from datetime import datetime, timedelta
@@ -7,7 +7,7 @@ from tpblite import TPB
 import sqlite3
 from time import sleep
 
-logger = logging.getLogger(__name__)
+logger = loggingmod.getLogger(__name__)
 
 def get_best(term):
     sleep(randint(5, 10))
@@ -15,7 +15,7 @@ def get_best(term):
     results = site.search(term)
     best = results.getBestTorrent(min_seeds=3, min_filesize='800 MiB', max_filesize='4 GiB')
     if best:
-        logger.debug("Found torrent %s", best)
+        logger.debug("Found matching torrent %s", best)
         return best.magnetlink
     raise IndexError((term, site))
 
@@ -54,7 +54,7 @@ def enqueue_all(source):
                 next_allowed = last_try + timedelta(days=min(2**fail_count, randint(90, 120)))
 
                 if now < next_allowed:
-                    logger.info("not trying to get %r for now. maybe in %s", subject, next_allowed)
+                    logger.debug("not trying to get %r for now. maybe in %s", subject, next_allowed-now)
                     continue
                 else:
                     logger.debug("%r is allowed as it's only been tried %s times", subject, fail_count)
@@ -81,8 +81,8 @@ def enqueue_all(source):
 
 
 def enqueue_magnet_link(magnet_link, subject):
-    logging.info("Enqueuing %r from %s", subject, magnet_link)
     assert magnet_link.startswith("magnet:"), magnet_link
+    logger.info("Asking torrenting service to enqueue %r from %s", subject, magnet_link)
     subprocess.run(["transmission-remote", "--add", magnet_link], stdout=subprocess.DEVNULL, timeout=10, check=True)
 
 

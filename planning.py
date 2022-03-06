@@ -1,6 +1,6 @@
-import logging
+import logging as loggingmod
 
-logger = logging.getLogger(__name__)
+logger = loggingmod.getLogger(__name__)
 
 
 def based_on(have):
@@ -12,7 +12,7 @@ def based_on(have):
                 found = yield candidate  # send up for processing, receive if it was found
 
                 if found:
-                    logging.info("Candidate %s was enqueued for downloading so adding its nexts to consideration list.", candidate)
+                    logger.info("Candidate %s was enqueued for downloading so adding its nexts to consideration list.", candidate)
                     to_do.add(candidate)
 
 
