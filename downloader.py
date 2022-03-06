@@ -43,7 +43,7 @@ def enqueue_all(source):
         while True:
 
             try:
-                name, season, ep = source.send(found)
+                name, season, ep = source.send(found)  # send success back to generator. bidirectional!
             except StopIteration:
                 break
 
