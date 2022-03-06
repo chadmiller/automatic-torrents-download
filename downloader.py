@@ -28,11 +28,15 @@ def enqueue_all(source):
 
     try:
         cursor.execute("""
-            create table if not exists cache (
+            create table if not exists attempt_history (
                 subject text,
                 last_try datetime,
                 fail_count integer
             )
+        """)
+
+        cursor.execute("""
+            create table if not exists dead_shows (name text)
         """)
 
         now = datetime.utcnow()
@@ -47,7 +51,7 @@ def enqueue_all(source):
 
             subject = "{} s{:02d}e{:02d}".format(name, season, ep)
 
-            row = cursor.execute("select last_try, fail_count from cache where subject = ?", (subject,)).fetchone()
+            row = cursor.execute("select ?, 20 from dead_shows where name = ? union select last_try, fail_count from attempt_history where subject = ?", (now.strftime("%Y-%m-%d %H:%M:%S"), name, subject)).fetchone()
             if row:
                 last_try = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
                 fail_count = int(row[1])
@@ -68,13 +72,13 @@ def enqueue_all(source):
                     enqueue_magnet_link(good_torrent_magnet, subject)
                     found = True
 
-                cursor.execute("delete from cache where subject = ?", (subject,))
+                cursor.execute("delete from attempt_history where subject = ?", (subject,))
             except IndexError:
                 logger.warning("wanted %s but none was found", subject)
                 if row:
-                    cursor.execute("update cache set fail_count=fail_count+1, last_try=? where subject = ?", (now.strftime("%Y-%m-%d %H:%M:%S"), subject,))
+                    cursor.execute("update attempt_history set fail_count=fail_count+1, last_try=? where subject = ?", (now.strftime("%Y-%m-%d %H:%M:%S"), subject,))
                 else:
-                    cursor.execute("insert into cache (fail_count, last_try, subject) values (1, ?, ?)", (now.strftime("%Y-%m-%d %H:%M:%S"), subject,))
+                    cursor.execute("insert into attempt_history (fail_count, last_try, subject) values (1, ?, ?)", (now.strftime("%Y-%m-%d %H:%M:%S"), subject,))
         db.commit()
     finally:
         db.close()
